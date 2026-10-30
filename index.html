@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MUHAMMED AABTHAF // CYBER & NETWORK OPERATIONS</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: bold;
+    }
+
+    body {
+      background-color: #0d0e12;
+      color: #e0e6ed;
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    canvas#bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* GATE / INTRO SCREEN */
+    #intro-gate {
+      position: fixed;
+      inset: 0;
+      background: #090a0d;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+
+    #intro-gate.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .enter-btn-wrapper {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .enter-btn {
+      background: #ff4500;
+      color: #090a0d;
+      border: 3px solid #ff4500;
+      padding: 40px 60px;
+      font-size: 2.2rem;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      position: relative;
+      clip-path: polygon(0 0, 100% 0, 100% 70%, 75% 70%, 75% 100%, 0 100%);
+      transition: all 0.2s ease;
+      box-shadow: 0 0 30px rgba(255, 69, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .enter-btn:hover {
+      background: #ff6a00;
+      box-shadow: 0 0 50px rgba(255, 69, 0, 0.8);
+      transform: scale(1.03);
+    }
+
+    .enter-btn .arrow {
+      font-size: 3rem;
+      line-height: 0.8;
+    }
+
+    .gate-status {
+      margin-top: 30px;
+      font-size: 0.9rem;
+      letter-spacing: 2px;
+      color: #ff4500;
+      text-transform: uppercase;
+    }
+
+    .gate-footer {
+      position: absolute;
+      bottom: 25px;
+      display: flex;
+      gap: 30px;
+      font-size: 0.8rem;
+      color: #6c7a89;
+      letter-spacing: 1px;
+    }
+
+    /* MAIN APP SHELL */
+    #app-shell {
+      position: relative;
+      z-index: 10;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 30px 20px;
+      display: opacity;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    #app-shell.active {
+      opacity: 1;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #232733;
+      padding-bottom: 20px;
+      margin-bottom: 40px;
+    }
+
+    .chapter-tag {
+      color: #ff4500;
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+    }
+
+    .main-title {
+      font-size: 3.5rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin-top: 5px;
+    }
+
+    .subtitle {
+      color: #8a9ba8;
+      font-size: 0.95rem;
+      margin-top: 8px;
+      letter-spacing: 1px;
+    }
+
+    /* SIDEBAR TOGGLES (Reference Style) */
+    .view-controls {
+      position: fixed;
+      right: 30px;
+      top: 30%;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: rgba(13, 14, 18, 0.85);
+      border: 1px solid #232733;
+      padding: 15px 10px;
+      backdrop-filter: blur(5px);
+    }
+
+    .ctrl-btn {
+      background: transparent;
+      border: none;
+      color: #5c6b73;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      text-align: right;
+      padding: 4px 8px;
+      transition: all 0.2s ease;
+    }
+
+    .ctrl-btn:hover, .ctrl-btn.active {
+      color: #ff4500;
+      border-right: 2px solid #ff4500;
+    }
+
+    /* NAV BAR */
+    nav {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 40px;
+    }
+
+    .nav-btn {
+      background: #141721;
+      border: 1px solid #232733;
+      color: #e0e6ed;
+      padding: 12px 24px;
+      cursor: pointer;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn:hover, .nav-btn.active {
+      background: #ffffff;
+      color: #090a0d;
+      border-color: #ffffff;
+    }
+
+    /* SECTIONS */
+    .section-block {
+      display: none;
+      margin-bottom: 60px;
+    }
+
+    .section-block.active {
+      display: block;
+    }
+
+    .grid-layout {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 25px;
+    }
+
+    .card {
+      background: rgba(20, 23, 33, 0.8);
+      border: 1px solid #232733;
+      padding: 25px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: #ff4500;
+      transform: translateY(-3px);
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      color: #ff4500;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+
+    .card-desc {
+      font-size: 0.85rem;
+      color: #a0aec0;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .spec-list {
+      list-style: none;
+      font-size: 0.8rem;
+      color: #cbd5e0;
+    }
+
+    .spec-list li {
+      margin-bottom: 8px;
+      padding-left: 15px;
+      position: relative;
+    }
+
+    .spec-list li::before {
+      content: '>';
+      position: absolute;
+      left: 0;
+      color: #ff4500;
+    }
+
+    /* INTERACTIVE DRONE TELEMETRY COMPONENT */
+    .hardware-inspector {
+      background: rgba(15, 18, 26, 0.9);
+      border: 1px solid #ff4500;
+      padding: 30px;
+      margin-top: 20px;
+    }
+
+    .comp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .comp-node {
+      background: #0d0e12;
+      border: 1px solid #232733;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .comp-node:hover, .comp-node.selected {
+      border-color: #ff4500;
+      background: rgba(255, 69, 0, 0.1);
+    }
+
+    .telemetry-display {
+      margin-top: 20px;
+      background: #08090b;
+      border: 1px solid #232733;
+      padding: 20px;
+      font-size: 0.85rem;
+      color: #00ff66;
+      min-height: 100px;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid #232733;
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #5c6b73;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- GATE / INTRO OVERLAY -->
+  <div id="intro-gate">
+    <div class="enter-btn-wrapper" onclick="initializeSystem()">
+      <div class="enter-btn">
+        <span>ENTER</span>
+        <span class="arrow">↵</span>
+      </div>
+    </div>
+    <div class="gate-status" id="gate-status-text">SYSTEM STANDBY // CLICK TO INITIALIZE</div>
+    <div class="gate-footer">
+      <span>CYBERSECURITY & NETWORKING</span>
+      <span>DEHIWALA / MALAYSIA / UAE</span>
+      <span>2026 DEPLOYMENT</span>
+    </div>
+  </div>
+
+  <!-- CONTROL SIDEBAR -->
+  <div class="view-controls">
+    <button class="ctrl-btn active" onclick="setBgMode('GRID')">GRID</button>
+    <button class="ctrl-btn" onclick="setBgMode('RADAR')">RADAR</button>
+    <button class="ctrl-btn" onclick="setBgMode('PIXELS')">PIXELS</button>
+    <button class="ctrl-btn" onclick="setBgMode('LINES')">LINES</button>
+  </div>
+
+  <!-- MAIN APPLICATION SHELL -->
+  <div id="app-shell">
+    <header>
+      <div>
+        <div class="chapter-tag">CHAPTER 01 / CORE OVERVIEW</div>
+        <h1 class="main-title">MUHAMMED AABTHAF</h1>
+        <div class="subtitle">CYBERSECURITY ENGINEER // NETWORK ARCHITECT // HARDWARE SYSTEMS</div>
+      </div>
+    </header>
+
+    <nav>
+      <button class="nav-btn active" onclick="showSection('profile')">01_PROFILE</button>
+      <button class="nav-btn" onclick="showSection('deployments')">02_DEPLOYMENTS</button>
+      <button class="nav-btn" onclick="showSection('operations')">03_OPERATIONS</button>
+      <button class="nav-btn" onclick="showSection('contact')">04_TRANSMISSION</button>
+    </nav>
+
+    <!-- SECTION 01: PROFILE -->
+    <section id="sec-profile" class="section-block active">
+      <div class="grid-layout">
+        <div class="card">
+          <div class="card-title">// ACADEMIC STANDING</div>
+          <div class="card-desc">Advanced specializations in network security infrastructure, machine learning threat detection, and system administration.</div>
+          <ul class="spec-list">
+            <li>M.Sc. Cybersecurity & Computer Networking (Asia Pacific University)</li>
+            <li>B.Sc. Computer Networking</li>
+            <li>Thesis: Wireless Protocol Vulnerability Detection via Neural Networks</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">// CORE COMPETENCIES</div>
+          <div class="card-desc">Proactive defense monitoring, red teaming methodologies, and server ecosystem deployment.</div>
+          <ul class="spec-list">
+            <li>Linux Administration (Rocky Linux, Ubuntu, Red Hat RH124/134)</li>
+            <li>Cisco Networking (CCNA Architecture, Routing & Switching)</li>
+            <li>Penetration Testing & Defensive Monitoring</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 02: DEPLOYMENTS (DRONE & PROJECTS) -->
+    <section id="sec-deployments" class="section-block">
+      <div class="card" style="margin-bottom: 25px;">
+        <div class="card-title">// FEATURED DEPLOYMENT: CY-BOT & WIRELESS THREAT DETECTION</div>
+        <div class="card-desc">An integrated network-security drone platform combined with an MLP neural network classifier for real-time wireless packet analysis.</div>
+      </div>
+
+      <div class="hardware-inspector">
+        <div style="color: #ff4500; font-size: 0.9rem;">SELECT HARDWARE / SOFTWARE MODULE TO INSPECT TELEMETRY:</div>
+        <div class="comp-grid">
+          <div class="comp-node selected" onclick="inspectModule('pixhawk')">FLIGHT CONTROLLER</div>
+          <div class="comp-node" onclick="inspectModule('esc')">POWER & ESCs</div>
+          <div class="comp-node" onclick="inspectModule('battery')">POWER CELL</div>
+          <div class="comp-node" onclick="inspectModule('nn')">NEURAL NET CLASSIFIER</div>
+        </div>
+
+        <div class="telemetry-display" id="telemetry-box">
+          [SYSTEM OK] - PIXHAWK / APM FLIGHT CONTROLLER LOADED.<br/>
+          > Telemetry Link: Active<br/>
+          > Flight Stabilization & Mission Planning Interface Ready.
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 03: OPERATIONS -->
+    <section id="sec-operations" class="section-block">
+      <div class="grid-layout">
+        <div class="card">
+          <div class="card-title">// INSTRUCTIONAL & LAB EXPERIENCE</div>
+          <div class="card-desc">5 Months Teaching Assistant & Lecturer for Switch Networks and Architecture at APU.</div>
+          <ul class="spec-list">
+            <li>Managed lab sessions on VirtualBox and VMware environments</li>
+            <li>Configured Rocky Linux & Ubuntu client-server setups</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">// CERTIFICATIONS & CREDENTIALS</div>
+          <div class="card-desc">Industry-validated certifications in networking and security.</div>
+          <ul class="spec-list">
+            <li>Fortinet Certified Associate in Cybersecurity</li>
+            <li>CCNA Introduction to Networks</li>
+            <li>CEH v13 AI Candidate</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 04: CONTACT -->
+    <section id="sec-contact" class="section-block">
+      <div class="card">
+        <div class="card-title">// TRANSMISSION & TARGET REGIONS</div>
+        <div class="card-desc">Relocating to UAE (Dec 2026) for opportunities in Cybersecurity Engineering, Linux SysAdmin, and Network Operations.</div>
+        <ul class="spec-list">
+          <li>GitHub: github.com/davidaabthaf</li>
+          <li>Target Markets: UAE / Malaysia / Singapore</li>
+          <li>Direct Contact: Available Upon Request</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>
+      <span>MUHAMMED AABTHAF // PORTFOLIO CORE</span>
+      <span>HOSTED ON VERCEL & GITHUB CODESPACES</span>
+    </footer>
+  </div>
+
+  <script>
+    /* SYSTEM INITIALIZATION FROM GATE */
+    function initializeSystem() {
+      const gate = document.getElementById('intro-gate');
+      const statusText = document.getElementById('gate-status-text');
+      statusText.innerText = "INITIALIZING HANDSHAKE... 100%";
+      setTimeout(() => {
+        gate.classList.add('hidden');
+        document.getElementById('app-shell').classList.add('active');
+      }, 400);
+    }
+
+    /* SECTION NAVIGATION */
+    function showSection(secId) {
+      document.querySelectorAll('.section-block').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      
+      document.getElementById('sec-' + secId).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    /* MODULE INSPECTOR TELEMETRY */
+    const telemetryData = {
+      pixhawk: "[SYSTEM OK] - PIXHAWK / APM FLIGHT CONTROLLER LOADED.\n> Telemetry Link: Active\n> Flight Stabilization & Mission Planning Interface Ready.",
+      esc: "[POWER SYSTEM] - HOBBYWING SKYWALKER 40A UBEC ESCs.\n> Quad-motor PWM timing verified.\n> High-load current regulation stable.",
+      battery: "[BATTERY TELEMETRY] - 4S 7000mAh LIPO CELL.\n> Voltage Output: Nominal\n> Extended airborne security scanning flight time capability.",
+      nn: "[ML SECURITY PAYLOAD] - MLP NEURAL NETWORK CLASSIFIER.\n> Real-time packet capture processing.\n> Automated wireless protocol anomaly detection online."
+    };
+
+    function inspectModule(key) {
+      document.querySelectorAll('.comp-node').forEach(n => n.classList.remove('selected'));
+      event.target.classList.add('selected');
+      document.getElementById('telemetry-box').innerText = telemetryData[key];
+    }
+
+    /* CANVAS BACKGROUND SYSTEM (GRID, RADAR, PIXELS, LINES) */
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let mode = 'GRID';
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function setBgMode(newMode) {
+      mode = newMode;
+      document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    let angle = 0;
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      if (mode === 'GRID') {
+        ctx.strokeStyle = 'rgba(35, 39, 51, 0.4)';
+        ctx.lineWidth = 1;
+        const size = 40;
+        for (let x = 0; x < canvas.width; x += size) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += size) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+        }
+      } else if (mode === 'RADAR') {
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        ctx.strokeStyle = 'rgba(255, 69, 0, 0.2)';
+        ctx.beginPath(); ctx.arc(cx, cy, 150, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, cy, 300, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(angle) * 400, cy + Math.sin(angle) * 400);
+        ctx.strokeStyle = '#ff4500';
+        ctx.stroke();
+        angle += 0.02;
+      } else if (mode === 'LINES') {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        for (let i = 0; i < canvas.height; i += 10) {
+          ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i + Math.sin(angle + i) * 20); ctx.stroke();
+        }
+        angle += 0.01;
+      } else if (mode === 'PIXELS') {
+        ctx.fillStyle = 'rgba(255, 69, 0, 0.15)';
+        for (let i = 0; i < 30; i++) {
+          const rx = Math.floor(Math.random() * canvas.width / 20) * 20;
+          const ry = Math.floor(Math.random() * canvas.height / 20) * 20;
+          ctx.fillRect(rx, ry, 4, 4);
+        }
+      }
+
+      requestAnimationFrame(render);
+    }
+    render();
+  </script>
+</body>
+</html>
